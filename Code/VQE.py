@@ -67,7 +67,7 @@ def one_run(theta):
     Energy = 0
 
     if len(np.array(string_list).shape) == 2:
-    
+
          for string_tuple in string_list:
 
             circuit = ansatz(theta)
@@ -136,26 +136,22 @@ def solver(string_list_parameter, size_parameter, shots_parameter=1000):
     shots = shots_parameter
 
     theta = np.random.randn(size*2)
-    
 
+    # newtons method
+    epochs = 100
+    theta = np.random.randn(size*2)
+    for epoch in tqdm(range(epochs)):
+        print(epoch, one_run(theta))
 
-    res = minimize(one_run, theta, method='Powell',tol=1e-8)
-    energy = one_run(res.x)
-
-    # gradient decent
-    #epochs = 200
-    #theta = np.random.randn(size*2)
-    #for epoch in tqdm(range(epochs)):
-        #print(epoch, one_run(theta))
-        #grad = np.zeros_like(theta)
-        #for idx in range(theta.shape[0]):
-            #theta_temp = theta.copy()
-            #theta_temp[idx] += np.pi/2
-            #E_plus = one_run(theta_temp)
-            #theta_temp[idx] -= np.pi
-            #E_minus = one_run(theta_temp)
-            #grad[idx] = (E_plus - E_minus)/2
-        #theta -= 0.1*grad
-    #energy = one_run(theta)
+        grad = np.zeros_like(theta)
+        for idx in range(theta.shape[0]):
+            theta_temp = theta.copy()
+            theta_temp[idx] += np.pi/2
+            E_plus = one_run(theta_temp)
+            theta_temp[idx] -= np.pi
+            E_minus = one_run(theta_temp)
+            grad[idx] = (E_plus - E_minus)/2
+        theta -= theta/grad
+    energy = one_run(theta)
 
     return energy
