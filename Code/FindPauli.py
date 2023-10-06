@@ -33,6 +33,16 @@ for k, mat1 in enumerate(mats2):
         i += 1
 
 
+def flatten_to_tuple(array):
+    if type(array[0]) == tuple:
+        return array, True
+    else:
+        flatter = []
+        for wrapper in array:
+            for element in wrapper:
+                flatter.append(element)
+        return flatter, False
+
 #Goes through every combination and sees if it fits with any of the criterias
 def find_pauli(H, comp=False, size = 3):
         use_mats = [mats, mats2, mats3][size-1]
@@ -46,6 +56,9 @@ def find_pauli(H, comp=False, size = 3):
                     coeffs.append((tmp_trace/2**size, use_mats_name[i]))
                 else:
                     coeffs.append((np.real(tmp_trace/2**size), use_mats_name[i]))
+        flat = False
+        while not flat:
+            coeffs, flat = flatten_to_tuple(coeffs)
         return coeffs
 
 def reconstruct(coeffs_lists, varible_list, size=3, comp=False):
