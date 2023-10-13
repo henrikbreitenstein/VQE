@@ -15,21 +15,17 @@ basis_x.h(0)
 basis_y = basis_x.copy()
 basis_y.sdg(0)
 basis_z = base_circuit.copy()
-basis_i = base_circuit.copy()
 basis_circuits = [basis_x, basis_y, basis_z]
 
-text_form_dict = {
+index_from_letter = {
     'X' : 0,
     'Y' : 1,
     'Z' : 2
 }
 def copy_and_compose(circuit, basis, qubit):
     new_circuit = circuit.copy()
-    
     basis_circuit = basis_circuits[basis]
-
     new_circuit = circuit.compose(basis_circuit, qubits=qubit)
-
     return new_circuit
 
 
@@ -44,7 +40,16 @@ def measure_and_count(circuit, bits, shots):
     job = backend.run(circuit, shots=shots)
     counts = job.result().get_counts()
 
-    for key in counts: #to avoid KeyError
+    """
+    Since everything is measured in the z-basis we that 
+    
+    |0> --> 1 and |1> --> -1 
+
+    so for a measurement of a multiqubi circuit the factor for the different states are
+    (-1)^P where P is the number of 1's in the state.
+    """
+
+    for key in counts:
         key_factor = 1
         for num in key:
             if num == '1':
@@ -65,14 +70,14 @@ def ansatz(theta, size):
     circuit = qk.QuantumCircuit(qreg, creg)
     idx = 0
     for i in range(size):
-        circuit.rx(theta[idx], qreg[i])
+        circuit.ry(theta[idx], qreg[i])
         idx += 1
 
     for i in range(size-1):
         circuit.cx(qreg[i], qreg[i+1])
 
     for i in range(size):
-        circuit.ry(theta[idx],qreg[i])
+        circuit.rx(theta[idx],qreg[i])
         idx += 1
 
     for i in range(size-1):
@@ -94,7 +99,7 @@ def one_run(theta, string_list, size, shots):
         measure_qbits = []
         for i, gate in enumerate(string):
             if (gate != 'I'):
-                circuit = copy_and_compose(circuit, text_form_dict[gate], i)
+                circuit = copy_and_compose(circuit, index_from_letter[gate], i)
                 measure_qbits.append(i)
         Energy += factor*measure_and_count(circuit, measure_qbits, shots)
 

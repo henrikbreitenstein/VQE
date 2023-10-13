@@ -8,11 +8,11 @@ import seaborn as sns; sns.set_theme(font_scale=1.5)
 
 def main():
 
-    J = 1
+    J = 2
     size = J+1
-    n_steps_VQE = 3
+    n_steps_VQE = 10
     n_steps_true = 100
-    n_threads = 1
+    n_threads = 5
     
     eps = 1
     V_start = 0
@@ -21,8 +21,8 @@ def main():
     V_space_VQE = np.linspace(V_start, V_stop, n_steps_VQE)
     V_space_true = np.linspace(V_start, V_stop, n_steps_true)
     
-    H_list_true = [utils.construct_Hamiltonian(size, eps, V) for V in V_space_true]
-    H_list_VQE = [utils.construct_Hamiltonian(size, eps, V) for V in V_space_VQE]
+    H_list_true = [utils.construct_Hamiltonian(J, eps, V) for V in V_space_true]
+    H_list_VQE = [utils.construct_Hamiltonian(J, eps, V) for V in V_space_VQE]
     PauliStrings = [FindPauli.find_pauli(H, size=size) for H in H_list_VQE]
     
     learning_rate = 0.5
@@ -49,7 +49,8 @@ def main():
 
     Ana = [V_space_true, Energy_True]
     Pred = [V_space_VQE, min_energy, 'VQE']
-    fig, error = utils.Ana_Pred_Plot(Ana, Pred, error=True, xlabel=r'$V$', ylabel='Energy')
+    fig, error = utils.Ana_Pred_Plot(Ana, Pred, error=True, xlabel=r'$V/\varepsilon$', 
+                                     ylabel=r'$E/\varepsilon$')
     plt.savefig('TwoqubitVQE.pdf')
 
 
