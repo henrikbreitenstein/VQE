@@ -43,8 +43,29 @@ def flatten_to_tuple(array):
                 flatter.append(element)
         return flatter, False
 
+def isPowerOfTwo (x):
+    return (x and (not(x & (x - 1))))
+
+def pad_matrix(H):
+    if not isPowerOfTwo(len(H)):
+        new_size = len(H) + 1
+        add = 1
+        while not isPowerOfTwo(new_size):
+            new_size += 1
+            add += 1
+        temp_H = np.zeros((new_size, new_size))
+        for i in range(len(H)):
+            for k in range(len(H)):
+                temp_H[i, k] = H[i, k]
+        for i in range(1, add+1):
+            temp_H[-i, -i] = 1
+        return temp_H
+    else:
+        return H
+    
 #Goes through every combination and sees if it fits with any of the criterias
 def find_pauli(H, comp=False, size = 3):
+        H = pad_matrix(H)
         use_mats = [mats, mats2, mats3][size-1]
         use_mats_name = [mats_name, mats2_name, mats3_name][size-1]
         coeffs = []
@@ -61,19 +82,17 @@ def find_pauli(H, comp=False, size = 3):
             coeffs, flat = flatten_to_tuple(coeffs)
         return coeffs
 
-def reconstruct(coeffs_lists, varible_list, size=3, comp=False):
+def reconstruct(string_list):
+    size = len(string_list[0][1])
     sum = np.zeros((2**size, 2**size))
-    for i, list in enumerate(coeffs_lists):
-        tmp = np.zeros((2**size, 2**size))
-        print(f'Reconstructing: \n {list}')
-        for coeff in list:
-            if comp:
-                tmp = tmp + coeff[0]*mat3_dict[coeff[1]]
-            else:
-                tmp = tmp + np.real(coeff[0]*mat3_dict[coeff[1]])
-        print(utils.matrix_to_latex(tmp.astype(int)))
-        sum = sum + tmp
-    return utils.matrix_to_latex(sum.astype(int))
+    use_mats = np.array([mats, mats2, mats3][size-1])
+    use_mats_name = np.array([mats_name, mats2_name, mats3_name][size-1])
+    for tuple in string_list:
+        coeff = tuple[0]
+        string = tuple[1]
+        index = np.where(use_mats_name==string)[0][0]
+        sum = np.real(sum + coeff*use_mats[index])
+    return sum
 
 def print_coeffs(coeffs_lists, varible_list, size=3, comp=False):
 
@@ -91,27 +110,6 @@ def print_coeffs(coeffs_lists, varible_list, size=3, comp=False):
         Final_eq += '(' + Collect_dict[key] + ')' + key + ' + '
     Fianl_eq = Final_eq[:-3]
     return Final_eq
-
-def string_list(variable_list):
-    #variable_list = [epsilon, np.sqrt(6)*V, 3*V, 3*W, 4*W]
-
-    unit = [[(-0.25, 'IZI'), (0.25, 'IZZ'), (-0.5, 'ZII'),
-    (-0.5, 'ZIZ'), (-0.75, 'ZZI'), (-0.25, 'ZZZ')],
-    [(0.25, 'IXI'), (0.25, 'IXZ'), (0.25, 'XXI'), (0.25, 'XXZ'),
-    (0.25, 'YYI'), (0.25, 'YYZ'), (0.25, 'ZXI'), (0.25, 'ZXZ')],
-    [(0.25, 'III'), (-0.25, 'IIZ'), (0.25, 'ZII'), (-0.25, 'ZIZ')],
-    [(0.25, 'IXI'), (-0.25, 'IXZ'), (0.25, 'ZXI'), (-0.25, 'ZXZ')],
-    [(0.125, 'III'), (0.125, 'IIZ'), (-0.125, 'IZI'), (-0.125, 'IZZ'),
-    (0.125, 'ZII'), (0.125, 'ZIZ'), (-0.125, 'ZZI'), (-0.125, 'ZZZ')]]
-
-    final = []
-    for var, list in zip(variable_list, unit):
-        tmp = []
-        for part in list:
-            tmp.append((var*part[0], part[1]))
-        final.append(tmp)
-
-    return final
 
 if __name__ == "__main__":
 

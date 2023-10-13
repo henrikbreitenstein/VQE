@@ -23,6 +23,8 @@ def main():
     for k in range(len(LIST)):
         H += variables[k]*LIST[k]
 
+    print(H)
+
     Pauli_String_List = FindPauli.find_pauli(H, size=2)
     
     n_VQE = 30

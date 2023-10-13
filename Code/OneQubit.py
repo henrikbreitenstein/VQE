@@ -1,5 +1,4 @@
 import numpy as np
-import grapher
 import FindPauli
 import VQE
 import matplotlib.pyplot as plt
@@ -7,15 +6,6 @@ import seaborn as sns; sns.set_theme(font_scale=1.5)
 from tqdm import tqdm
 import utils
 import multiprocessing
-
-
-def eigen(A):
-    eigenValues, eigenVectors = np.linalg.eig(A)
-    idx = np.argsort(eigenValues)
-    eigenValues = eigenValues[idx]
-    eigenVectors = eigenVectors[:,idx]
-    return (eigenValues, eigenVectors)
-#one qubit curcuit
 
 if __name__ == '__main__':
     np.seterr(all='ignore')
@@ -27,7 +17,7 @@ if __name__ == '__main__':
     name = 'TestCases/onequbitTrue.pdf'
     nameVQE = 'TestCases/onequbitVQE.pdf'
 
-    n = 30
+    n = 5
     n_true = 100
     lmb_true = np.linspace(0, 1, n_true)
     space_lambda = np.linspace(0,1 , n)
@@ -35,7 +25,7 @@ if __name__ == '__main__':
 
     for i in range(n_true):
         H = H_0 + lmb_true[i]*H_I
-        Energy_True[i] = eigen(H)[0][0]
+        Energy_True[i] = utils.eigen(H)[0][0]
 
     number_shots = 1_000
     learning_rate = 0.3
@@ -45,7 +35,7 @@ if __name__ == '__main__':
     PauliStrings = [FindPauli.find_pauli(H_0 + lmb*H_I, size=1) for lmb in lmbvalues]
 
     processes = [multiprocessing.Process(
-        target=VQE.get_all_min, args=(n, learning_rate, number_shots, 
+        target=VQE.get_all_min, args=(n, 1, learning_rate, number_shots, 
                            PauliStrings, epochs, min_energy[k])) for k in range(len(min_energy))]
 
     for process in processes:
@@ -56,5 +46,5 @@ if __name__ == '__main__':
 
     Ana = [lmb_true, Energy_True]
     Pred = [space_lambda, min_energy, 'VQE']
-    fig = utils.Ana_Pred_Plot(Ana, Pred, error=True, xlabel=r'$\lambda$', ylabel='Energy')
+    fig, error = utils.Ana_Pred_Plot(Ana, Pred, error=True, xlabel=r'$\lambda$', ylabel='Energy')
     plt.savefig('onequbitVQE.pdf')

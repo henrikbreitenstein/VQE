@@ -67,6 +67,7 @@ def ansatz(theta, size):
     for i in range(size):
         circuit.rx(theta[idx], qreg[i])
         idx += 1
+
     for i in range(size-1):
         circuit.cx(qreg[i], qreg[i+1])
 
@@ -99,38 +100,38 @@ def one_run(theta, string_list, size, shots):
 
     return Energy
 
-def solver(string_list_parameter, size_parameter, learning_rate, shots_parameter=1000):
+def solver(string_list, size, learning_rate, shots):
 
     # newtons method
     epoch = 0
     delta_energy = 1
     max_epochs = 400
-    theta = np.random.uniform(low = 0, high = np.pi, size = 2)
-    energy = one_run(theta, string_list_parameter, size_parameter, shots_parameter)
+    theta = np.random.uniform(low = 0, high = np.pi, size = 2*size)
+    energy = one_run(theta, string_list, size, shots)
     while (epoch < max_epochs) and (delta_energy > 1e-4):
         grad = np.zeros_like(theta)
         for idx in range(theta.shape[0]):
             theta_temp = theta.copy()
             theta_temp[idx] += np.pi/2
-            E_plus = one_run(theta_temp, string_list_parameter, size_parameter, shots_parameter)
+            E_plus = one_run(theta_temp, string_list, size, shots)
             theta_temp[idx] -= np.pi
-            E_minus = one_run(theta_temp, string_list_parameter, size_parameter, shots_parameter)
+            E_minus = one_run(theta_temp, string_list, size, shots)
             grad[idx] = (E_plus - E_minus)/2
         theta -= learning_rate*grad
-        new_energy = one_run(theta_temp, string_list_parameter, size_parameter, shots_parameter)
+        new_energy = one_run(theta_temp, string_list, size, shots)
         delta_energy = np.abs(new_energy - energy)
         energy = new_energy
         epoch += 1
 
     return new_energy, epoch, theta
 
-def get_all_min(n, learning_rate, number_shots, PauliStrings, epochs, min_energy_k):
+def get_all_min(n, size, learning_rate, number_shots, PauliStrings, epochs, min_energy_k):
     Energy_VQE = np.zeros(n)
     for index, PauliString in enumerate(tqdm(PauliStrings)):
-        _, epochs[index], angles = solver(PauliString, 1, learning_rate, number_shots)
-        Energy_VQE[index] = one_run(angles, PauliString, 1, number_shots)
+        _, epochs[index], angles = solver(PauliString, size, learning_rate, number_shots)
+        Energy_VQE[index] = one_run(angles, PauliString, size, number_shots)
         if epochs[index] < (epochs[index-1] - 5):
-            _, epochs[index], angles= solver(PauliString, 1, learning_rate, number_shots)
-        Energy_VQE[index] = one_run(angles, PauliString, 1, number_shots)
+            _, epochs[index], angles= solver(PauliString, size, learning_rate, number_shots)
+        Energy_VQE[index] = one_run(angles, PauliString, size, number_shots)
     for j in range(len(Energy_VQE)):#for multiprocessing purposes
         min_energy_k[j] = Energy_VQE[j]
