@@ -13,6 +13,7 @@ def main():
     n_steps_VQE = 10
     n_steps_true = 100
     n_threads = 5
+    n_overheads = 5
     
     eps = 1
     V_start = 0
@@ -28,19 +29,21 @@ def main():
     learning_rate = 0.5
     number_shots = 1_000
     epochs = [np.zeros_like(V_space_VQE) for i in range(n_threads)]
+    min_energy_overhead = []
+    for i in range(n_overheads):
+        min_energy = [multiprocessing.Array('d', n_steps_VQE) for i in range(n_threads)]
 
-    min_energy = [multiprocessing.Array('d', n_steps_VQE) for i in range(n_threads)]
+        processes = [multiprocessing.Process(
+            target=VQE.get_all_min, args=(n_steps_VQE, size, learning_rate, number_shots, 
+                            PauliStrings, epochs[k], min_energy[k])) for k in range(len(min_energy))]
 
-    processes = [multiprocessing.Process(
-        target=VQE.get_all_min, args=(n_steps_VQE, size, learning_rate, number_shots, 
-                           PauliStrings, epochs[k], min_energy[k])) for k in range(len(min_energy))]
+        for process in processes:
+            process.start()
 
-    for process in processes:
-        process.start()
+        for process in processes:
+            process.join()
 
-    for process in processes:
-        process.join()
-
+        min_energy_overhead += min_energy
 
     Energy_True = np.zeros_like(V_space_true)
     for i in range(n_steps_true):

@@ -64,7 +64,7 @@ def pad_matrix(H):
         return H
     
 #Goes through every combination and sees if it fits with any of the criterias
-def find_pauli(H, comp=False, size = 3):
+def find_pauli(H, size = 3):
         H = pad_matrix(H)
         use_mats = [mats, mats2, mats3][size-1]
         use_mats_name = [mats_name, mats2_name, mats3_name][size-1]
@@ -73,10 +73,7 @@ def find_pauli(H, comp=False, size = 3):
             tmp = pauli@H
             tmp_trace = np.trace(tmp)
             if tmp_trace != 0:
-                if comp:
-                    coeffs.append((tmp_trace/2**size, use_mats_name[i]))
-                else:
-                    coeffs.append((np.real(tmp_trace/2**size), use_mats_name[i]))
+                coeffs.append((tmp_trace/2**size, use_mats_name[i]))
         flat = False
         while not flat:
             coeffs, flat = flatten_to_tuple(coeffs)
@@ -94,22 +91,20 @@ def reconstruct(string_list):
         sum = np.real(sum + coeff*use_mats[index])
     return sum
 
-def print_coeffs(coeffs_lists, varible_list, size=3, comp=False):
+def print_coeffs(coeffs_lists):
 
     Final_eq = ''
 
     Collect_dict = {}
 
-    for i, list in enumerate(coeffs_lists):
-        for coeff in list:
-            try:
-                Collect_dict[coeff[1]] += ' + ' + str(coeff[0]) + varible_list[i]
-            except:
-                Collect_dict[coeff[1]] = str(coeff[0]) + varible_list[i]
+    for coeff in coeffs_lists:
+        try:
+            Collect_dict[coeff[1]] += ' + ' + str(np.real(coeff[0]))
+        except:
+            Collect_dict[coeff[1]] = str(np.real(coeff[0]))
     for key in Collect_dict:
-        Final_eq += '(' + Collect_dict[key] + ')' + key + ' + '
-    Fianl_eq = Final_eq[:-3]
-    return Final_eq
+        Final_eq +=  Collect_dict[key] + key + ' + '
+    return Final_eq[:-3]
 
 if __name__ == "__main__":
 

@@ -77,14 +77,14 @@ def construct_spin(S):
 
     for i in range(size):
         for k in range(size):
-            n = i-S
-            m = k-S
+            m = i-S
+            n = k-S
 
             pm_factor = np.sqrt(S*(S+1) -m*n)
 
-            J_pluss[i,k] = dd(m, n+1)*pm_factor
-            J_minus[i,k] = dd(m+1, n)*pm_factor
-            J_z[i,k] = dd(m,n)*m
+            J_pluss[i, k] = dd(m, n+1)*pm_factor
+            J_minus[i, k] = dd(m+1, n)*pm_factor
+            J_z[i, k] = dd(m,n)*m
     
     return J_z, J_pluss, J_minus
 
